@@ -281,14 +281,23 @@ public class SpringApplication {
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public SpringApplication(ResourceLoader resourceLoader, Class<?>... primarySources) {
-		this.resourceLoader = resourceLoader;
+		this.resourceLoader = resourceLoader; // resourceLoader一般是null
 		Assert.notNull(primarySources, "PrimarySources must not be null");
+		// 主要的 Java Config 类的数组，一般是项目的启动类
 		this.primarySources = new LinkedHashSet<>(Arrays.asList(primarySources));
+		// 通过 classpath ，判断 Web 应用类型。
 		this.webApplicationType = WebApplicationType.deduceFromClasspath();
 		// 初始化 initializers 属性
 		setInitializers((Collection) getSpringFactoriesInstances(ApplicationContextInitializer.class));
 		// 初始化 listeners 属性
 		setListeners((Collection) getSpringFactoriesInstances(ApplicationListener.class));
+
+		/*
+			调用 #deduceMainApplicationClass() 方法，获得是调用了哪个 #main(String[] args) 方法
+			在文初的例子中，就是 MVCApplication 类。
+			这个 mainApplicationClass 属性，没有什么逻辑上的用途，【主要就是用来打印下日志】，
+			说明是通过这个类启动 Spring 应用的。
+		 */
 		// 初始化 mainApplicationClass 属性
 		this.mainApplicationClass = deduceMainApplicationClass();
 	}
