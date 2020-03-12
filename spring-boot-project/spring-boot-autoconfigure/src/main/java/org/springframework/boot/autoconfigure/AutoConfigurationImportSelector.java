@@ -54,6 +54,8 @@ import java.util.stream.Collectors;
  * @author Madhura Bhave
  * @since 1.3.0
  * @see EnableAutoConfiguration
+ * ，实现 DeferredImportSelector、BeanClassLoaderAware、ResourceLoaderAware、BeanFactoryAware、EnvironmentAware、Ordered 接口，
+ * 处理 @EnableAutoConfiguration 注解的资源导入。
  */
 public class AutoConfigurationImportSelector
 		implements DeferredImportSelector, BeanClassLoaderAware, ResourceLoaderAware,
@@ -170,6 +172,7 @@ public class AutoConfigurationImportSelector
 	 * @param attributes the {@link #getAttributes(AnnotationMetadata) annotation
 	 * attributes}
 	 * @return a list of candidate configurations
+	 * 获得符合条件的配置类的数组
 	 */
 	protected List<String> getCandidateConfigurations(AnnotationMetadata metadata, AnnotationAttributes attributes) {
 	    // 加载指定类型 EnableAutoConfiguration 对应的，在 `META-INF/spring.factories` 里的类名的数组

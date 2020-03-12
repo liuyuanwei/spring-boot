@@ -41,13 +41,36 @@ import java.lang.annotation.*;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
+
+/*
+	Java 自带的注解。
+	使用此注解声明出来的自定义注解，在使用此自定义注解时，如果注解在类上面时，子类会自动继承此注解，否则的话，子类不会继承此注解。
+	使用 @Inherited 声明出来的注解，只有在类上使用时才会有效，对方法，属性等其他无效。
+ */
 @Inherited
+/*
+	Spring Boot 自定义的注解
+	标记这是一个 Spring Boot 配置类。
+	它上面继承自 @Configuration 注解，所以两者功能也一致，
+	可以将当前类内声明的一个或多个以 @Bean 注解标记的方法的实例纳入到 Srping 容器中，并且实例名就是方法名。
+ */
 @SpringBootConfiguration
+/*
+	用于开启自动配置功能，
+	】】】是 spring-boot-autoconfigure 项目最核心的注解。
+ */
 @EnableAutoConfiguration
+/*
+	扫描指定路径下的 Component（@Componment、@Configuration、@Service 等等）。
+ */
 @ComponentScan(excludeFilters = {
 		@Filter(type = FilterType.CUSTOM, classes = TypeExcludeFilter.class),
 		@Filter(type = FilterType.CUSTOM, classes = AutoConfigurationExcludeFilter.class) })
 public @interface SpringBootApplication {
+	/*
+		通过使用它，不仅仅能标记这是一个 Spring Boot 应用，而且能够开启自动配置的功能。
+	 */
+
 
 	/**
 	 * Exclude specific auto-configuration classes such that they will never be applied.

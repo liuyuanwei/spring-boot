@@ -71,7 +71,16 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Inherited
+/*
+	主要功能自动配置包，它会获取主程序类所在的包路径，
+	】】】并将包路径（包括子包）下的所有组件注册到 Spring IOC 容器中。
+ */
 @AutoConfigurationPackage
+/*
+	AutoConfigurationImportSelector ，
+	实现 DeferredImportSelector、BeanClassLoaderAware、ResourceLoaderAware、BeanFactoryAware、EnvironmentAware、Ordered 接口，
+	处理 @EnableAutoConfiguration 注解的资源导入。
+ */
 @Import(AutoConfigurationImportSelector.class)
 public @interface EnableAutoConfiguration {
 
