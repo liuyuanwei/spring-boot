@@ -34,9 +34,9 @@ public class ConfigurationPropertiesBindingPostProcessorRegistrar implements Imp
 	@Override
 	public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
 		if (!registry.containsBeanDefinition(ConfigurationPropertiesBindingPostProcessor.BEAN_NAME)) {
-		    // 注册 ConfigurationPropertiesBindingPostProcessor BeanDefinition
+		    // <1> 注册 ConfigurationPropertiesBindingPostProcessor BeanDefinition
 			registerConfigurationPropertiesBindingPostProcessor(registry);
-			// 注册 ConfigurationBeanFactoryMetadata BeanDefinition
+			// <2> 注册 ConfigurationBeanFactoryMetadata BeanDefinition
 			registerConfigurationBeanFactoryMetadata(registry);
 		}
 	}

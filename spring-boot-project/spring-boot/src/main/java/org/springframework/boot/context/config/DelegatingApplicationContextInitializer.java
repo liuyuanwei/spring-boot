@@ -37,6 +37,9 @@ import java.util.List;
  *
  * @author Dave Syer
  * @author Phillip Webb
+ * 根据环境变量配置的 context.initializer.classes 配置的 ApplicationContextInitializer 类们，交给它们进行初始化。
+ *
+ * 优先级为 0 ，在 Spring Boot 默认的 ApplicationContextInitializer 实现类中，是排在最前面的。
  */
 public class DelegatingApplicationContextInitializer implements
 		ApplicationContextInitializer<ConfigurableApplicationContext>, Ordered {

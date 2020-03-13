@@ -52,6 +52,7 @@ import java.util.Set;
  *
  * @author Phillip Webb
  * @see #setBeanNameGenerator(BeanNameGenerator)
+ * BeanDefinition 加载器（Loader），负责 Spring Boot 中，读取 BeanDefinition 。
  */
 class BeanDefinitionLoader {
 
@@ -91,6 +92,11 @@ class BeanDefinitionLoader {
 	BeanDefinitionLoader(BeanDefinitionRegistry registry, Object... sources) {
 		Assert.notNull(registry, "Registry must not be null");
 		Assert.notEmpty(sources, "Sources must not be empty");
+
+		/*
+			设置 sources 属性。它来自方法参数 Object... sources ，来自 SpringApplication#getAllSources() 方法
+			默认情况下，返回的结果是 Spring#run(Class<?> primarySource, String... args) 方法的 Class<?> primarySource 的方法参数。例如说：MVCApplication 。
+		 */
 		this.sources = sources;
 		// 创建 AnnotatedBeanDefinitionReader 对象
 		this.annotatedReader = new AnnotatedBeanDefinitionReader(registry);
@@ -150,23 +156,27 @@ class BeanDefinitionLoader {
 
 	private int load(Object source) {
 		Assert.notNull(source, "Source must not be null");
-		// 如果是 Class 类型，则使用 AnnotatedBeanDefinitionReader 执行加载
+		// <1>如果是 Class 类型，则使用 AnnotatedBeanDefinitionReader 执行加载
 		if (source instanceof Class<?>) {
 			return load((Class<?>) source);
 		}
-        // 如果是 Resource 类型，则使用 XmlBeanDefinitionReader 执行加载
+        // <2>如果是 Resource 类型，则使用 XmlBeanDefinitionReader 执行加载
         if (source instanceof Resource) {
 			return load((Resource) source);
 		}
-        // 如果是 Package 类型，则使用 ClassPathBeanDefinitionScanner 执行加载
+        // <3>如果是 Package 类型，则使用 ClassPathBeanDefinitionScanner 执行加载
         if (source instanceof Package) {
 			return load((Package) source);
 		}
-        // 如果是 CharSequence 类型，则各种尝试去加载
+
+		/*
+			按照 source 是 Class > Resource > Package 的顺序，尝试加载。
+		 */
+        // <4>如果是 CharSequence 类型，则各种尝试去加载
 		if (source instanceof CharSequence) {
 			return load((CharSequence) source);
 		}
-		// 无法处理的类型，抛出 IllegalArgumentException 异常
+		// <5>无法处理的类型，抛出 IllegalArgumentException 异常
 		throw new IllegalArgumentException("Invalid source type " + source.getClass());
 	}
 

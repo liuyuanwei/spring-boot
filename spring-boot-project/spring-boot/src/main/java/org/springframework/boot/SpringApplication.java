@@ -889,7 +889,7 @@ public class SpringApplication {
 		if (this.environment != null) {
 			loader.setEnvironment(this.environment);
 		}
-		// 执行 BeanDefinition 加载
+		// 】】】执行 BeanDefinition 加载
 		loader.load();
 	}
 

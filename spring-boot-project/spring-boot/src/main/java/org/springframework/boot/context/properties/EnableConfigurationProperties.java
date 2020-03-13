@@ -28,6 +28,7 @@ import java.lang.annotation.*;
  * directly on this annotation.
  *
  * @author Dave Syer
+ * 可以将指定带有 @ConfigurationProperties 的类，注册成 BeanDefinition ，从而创建成 Bean 对象。
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)

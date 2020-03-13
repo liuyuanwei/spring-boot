@@ -31,6 +31,7 @@ import java.lang.annotation.*;
  * @author Dave Syer
  * @see ConfigurationPropertiesBindingPostProcessor
  * @see EnableConfigurationProperties
+ * 如何将配置文件自动设置到被注解的类。
  */
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)

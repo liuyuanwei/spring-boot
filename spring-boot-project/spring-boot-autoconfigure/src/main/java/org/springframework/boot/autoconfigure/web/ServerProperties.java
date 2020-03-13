@@ -57,6 +57,7 @@ import org.springframework.util.unit.DataSize;
  * @author Olivier Lamy
  * @author Chentao Qu
  * @author Artsiom Yudovin
+ * 通过 @ConfigurationProperties 注解，声明将 server 前缀的配置项，设置到 ServerProperties 配置属性类中。
  */
 @ConfigurationProperties(prefix = "server", ignoreUnknownFields = true)
 public class ServerProperties {

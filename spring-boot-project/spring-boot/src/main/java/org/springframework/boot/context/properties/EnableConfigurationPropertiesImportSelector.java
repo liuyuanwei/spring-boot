@@ -46,9 +46,13 @@ import java.util.stream.Collectors;
  * @author Dave Syer
  * @author Christian Dupuis
  * @author Stephane Nicoll
+ * 实现 ImportSelector 接口，处理 @EnableConfigurationProperties 注解
  */
 class EnableConfigurationPropertiesImportSelector implements ImportSelector {
 
+	/*
+		返回的 IMPORTS 的是两个 ImportBeanDefinitionRegistrar 实现类。
+	 */
     private static final String[] IMPORTS = {
             ConfigurationPropertiesBeanRegistrar.class.getName(),
             ConfigurationPropertiesBindingPostProcessorRegistrar.class.getName()};
@@ -59,14 +63,18 @@ class EnableConfigurationPropertiesImportSelector implements ImportSelector {
     }
 
     /**
-     * {@link ImportBeanDefinitionRegistrar} for configuration properties support.
+     * 是 EnableConfigurationPropertiesImportSelector 的内部静态类，实现 ImportBeanDefinitionRegistrar 接口，
+	 * 将 @EnableConfigurationProperties 注解指定的类，逐个注册成对应的 BeanDefinition 对象。
      */
     public static class ConfigurationPropertiesBeanRegistrar implements ImportBeanDefinitionRegistrar {
 
         @Override
         public void registerBeanDefinitions(AnnotationMetadata metadata, BeanDefinitionRegistry registry) {
-            getTypes(metadata)
-                    .forEach((type) -> register(registry, (ConfigurableListableBeanFactory) registry, type));
+        	// <1> 处，调用 #getTypes(AnnotationMetadata metadata) 方法，获得 @EnableConfigurationProperties 注解指定的类的数组。
+            getTypes(metadata) // <1>
+                    .forEach((type) -> register(registry, (ConfigurableListableBeanFactory) registry, type)); // <2>
+			// <2> 遍历，逐个调用 #register(BeanDefinitionRegistry registry, ConfigurableListableBeanFactory beanFactory, Class<?> type) 方法，
+			// 注册每个类对应的 BeanDefinition 对象。
         }
 
         private List<Class<?>> getTypes(AnnotationMetadata metadata) {
@@ -85,9 +93,17 @@ class EnableConfigurationPropertiesImportSelector implements ImportSelector {
 
         private void register(BeanDefinitionRegistry registry, ConfigurableListableBeanFactory beanFactory, Class<?> type) {
             // 通过 @ConfigurationProperties 注解，获得最后要生成的 BeanDefinition 的名字。格式为 prefix-类全名 or 类全名
+			// 调用 #getName(Class<?> type) 方法，通过 @ConfigurationProperties 注解，获得最后要生成的 BeanDefinition 的名字
             String name = getName(type);
+
+            /*
+            	调用 #containsBeanDefinition(ConfigurableListableBeanFactory beanFactory, String name) 方法，
+            	判断是否已经有该名字的 BeanDefinition 的名字。
+            	如果不存在，才执行后续的注册 BeanDefinition 逻辑。
+             */
             // 判断是否已经有该名字的 BeanDefinition 的名字。没有，才进行注册
             if (!containsBeanDefinition(beanFactory, name)) {
+            	// 注册 BeanDefinition
                 registerBeanDefinition(registry, name, type);
             }
         }

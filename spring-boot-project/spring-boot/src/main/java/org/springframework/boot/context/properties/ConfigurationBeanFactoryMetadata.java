@@ -36,6 +36,7 @@ import java.util.concurrent.atomic.AtomicReference;
  *
  * @author Dave Syer
  * @since 1.1.0
+ * 初始化配置类创建 Bean 的每个方法的元数据。
  */
 public class ConfigurationBeanFactoryMetadata implements BeanFactoryPostProcessor {
 
