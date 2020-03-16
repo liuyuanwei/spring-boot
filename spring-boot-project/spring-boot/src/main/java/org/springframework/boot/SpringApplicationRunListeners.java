@@ -31,6 +31,8 @@ import java.util.List;
  * A collection of {@link SpringApplicationRunListener}.
  *
  * @author Phillip Webb
+ *  】】】可以看到 SpringApplicationRunListeners 属于组合模式的实现，核心其实是内部关联的 SpringApplicationRunListener 对象集合，
+ *  当外部调用该阶段方法时，就会迭代执行集合中 SpringApplicationRunListener 对应的方法。
  */
 class SpringApplicationRunListeners {
 

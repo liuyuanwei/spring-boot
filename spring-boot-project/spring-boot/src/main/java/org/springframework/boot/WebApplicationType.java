@@ -71,6 +71,12 @@ public enum WebApplicationType {
     /**
      * @return 从 classpath 上，判断 Web 应用类型。
      */
+    /*
+    	可以看到，在方法中利用 ClassUtils.isPresent 进行判断，
+    	当DispatcherHandler存在，而DispatcherServlet和ServletContainer不存在时，则当前应用推导为 Reactive web 类型；
+    	当 Servlet 和 ConfigurableWebApplicationContext 不存在时，当前应用为非 Web 类型；
+    	其他的则为 Servlet Web 类型。
+     */
 	static WebApplicationType deduceFromClasspath() {
         // WebApplicationType.REACTIVE 类型
 		if (ClassUtils.isPresent(WEBFLUX_INDICATOR_CLASS, null) // 存在 Spring Webflux 的类

@@ -51,17 +51,19 @@ import java.lang.annotation.*;
 /*
 	Spring Boot 自定义的注解
 	标记这是一个 Spring Boot 配置类。
-	它上面继承自 @Configuration 注解，所以两者功能也一致，
+	它上面继承自 @Configuration 注解，【所以两者功能也一致】，
 	可以将当前类内声明的一个或多个以 @Bean 注解标记的方法的实例纳入到 Srping 容器中，并且实例名就是方法名。
  */
 @SpringBootConfiguration
 /*
-	用于开启自动配置功能，
+	】】】激活自动配置功能，
 	】】】是 spring-boot-autoconfigure 项目最核心的注解。
+	其中默认路径扫描以及组件装配、排除等都通过它来实现。
  */
 @EnableAutoConfiguration
 /*
 	扫描指定路径下的 Component（@Componment、@Configuration、@Service 等等）。
+	】】】用来扫描被 @Component标注的类 ，【只不过这里是用来过滤 Bean 的】，指定哪些类不进行扫描，而且用的是自定义规则。
  */
 @ComponentScan(excludeFilters = {
 		@Filter(type = FilterType.CUSTOM, classes = TypeExcludeFilter.class),
@@ -73,37 +75,28 @@ public @interface SpringBootApplication {
 
 
 	/**
-	 * Exclude specific auto-configuration classes such that they will never be applied.
-	 * @return the classes to exclude
+	 * 根据class来排除，排除指定的类加入spring容器，传入的类型是class类型。
+	 * 且继承自 @EnableAutoConfiguration 中的属性。
 	 */
 	@AliasFor(annotation = EnableAutoConfiguration.class)
 	Class<?>[] exclude() default {};
 
 	/**
-	 * Exclude specific auto-configuration class names such that they will never be
-	 * applied.
-	 * @return the class names to exclude
-	 * @since 1.3.0
+	 * 根据class name来排除，排除特定的类加入spring容器，参数类型是class的全类名字符串数组。
+	 * 同样继承自 @EnableAutoConfiguration。
 	 */
 	@AliasFor(annotation = EnableAutoConfiguration.class)
 	String[] excludeName() default {};
 
 	/**
-	 * Base packages to scan for annotated components. Use {@link #scanBasePackageClasses}
-	 * for a type-safe alternative to String-based package names.
-	 * @return base packages to scan
+	 * 可以指定多个包名进行扫描。继承自 @ComponentScan
 	 * @since 1.3.0
 	 */
 	@AliasFor(annotation = ComponentScan.class, attribute = "basePackages")
 	String[] scanBasePackages() default {};
 
 	/**
-	 * Type-safe alternative to {@link #scanBasePackages} for specifying the packages to
-	 * scan for annotated components. The package of each class specified will be scanned.
-	 * <p>
-	 * Consider creating a special no-op marker class or interface in each package that
-	 * serves no purpose other than being referenced by this attribute.
-	 * @return base packages to scan
+	 * 可以指定多个类或接口的class，然后扫描 class 所在包下的所有组件。同样继承自 @ComponentScan 。
 	 * @since 1.3.0
 	 */
 	@AliasFor(annotation = ComponentScan.class, attribute = "basePackageClasses")

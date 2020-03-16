@@ -56,6 +56,7 @@ import java.util.stream.Collectors;
  * @see EnableAutoConfiguration
  * ，实现 DeferredImportSelector、BeanClassLoaderAware、ResourceLoaderAware、BeanFactoryAware、EnvironmentAware、Ordered 接口，
  * 处理 @EnableAutoConfiguration 注解的资源导入。
+ * 获取自动装配的组件
  */
 public class AutoConfigurationImportSelector
 		implements DeferredImportSelector, BeanClassLoaderAware, ResourceLoaderAware,
@@ -81,10 +82,13 @@ public class AutoConfigurationImportSelector
 	// TODO 芋艿 可以暂时忽略
 	@Override
 	public String[] selectImports(AnnotationMetadata annotationMetadata) {
+		// 如果AutoConfiguration没开,返回{}
 		if (!isEnabled(annotationMetadata)) {
 			return NO_IMPORTS;
 		}
+		// 加载自动装配的元信息
 		AutoConfigurationMetadata autoConfigurationMetadata = AutoConfigurationMetadataLoader.loadMetadata(this.beanClassLoader);
+		// 】】】该方法返回的就是自动装配的组件
 		AutoConfigurationEntry autoConfigurationEntry = getAutoConfigurationEntry(autoConfigurationMetadata, annotationMetadata);
 		return StringUtils.toStringArray(autoConfigurationEntry.getConfigurations());
 	}
@@ -97,32 +101,66 @@ public class AutoConfigurationImportSelector
 	 * @param autoConfigurationMetadata the auto-configuration metadata
 	 * @param annotationMetadata the annotation metadata of the configuration class
 	 * @return the auto-configurations that should be imported
+	 * getAutoConfigurationEntry
+	 * 该方法中就是先获取待自动装配组件的类名集合，然后通过一些列的去重、排除、过滤，最终返回自动装配的类名集合
 	 */
 	protected AutoConfigurationEntry getAutoConfigurationEntry(AutoConfigurationMetadata autoConfigurationMetadata, AnnotationMetadata annotationMetadata) {
 	    // 1. 判断是否开启。如未开启，返回空串
 		if (!isEnabled(annotationMetadata)) {
 			return EMPTY_ENTRY;
 		}
+
+		/*
+			获取 @EnableAutoConfigoration 标注类的元信息，也就是获取该注解 exclude 和 excludeName 属性值
+		 */
 		// 2. 获得注解的属性
 		AnnotationAttributes attributes = getAttributes(annotationMetadata);
-		// 3. 获得符合条件的配置类的数组
+
+		/*
+			该方法就是获取自动装配的类名集合
+			加载指定类型 EnableAutoConfiguration 对应的，在 `META-INF/spring.factories` 里的类名的数组
+		 */
+		// 3. 】】】】获得符合条件的配置类的数组
 		List<String> configurations = getCandidateConfigurations(annotationMetadata, attributes);
+		/*
+			去除重复的自动装配组件，就是将List转为Set进行去重
+		 */
 		// 3.1 移除重复的配置类
 		configurations = removeDuplicates(configurations);
+
+		/*
+			这部分就是根据上面获取的 exclude 及 excludeName 属性值，排除指定的类
+		 */
 		// 4. 获得需要排除的配置类
 		Set<String> exclusions = getExclusions(annotationMetadata, attributes);
 		// 4.1 校验排除的配置类是否合法
 		checkExcludedClasses(configurations, exclusions);
 		// 4.2 从 configurations 中，移除需要排除的配置类
 		configurations.removeAll(exclusions);
-		// 5. 根据条件（Condition），过滤掉不符合条件的配置类
+
+		/*
+			这里是过滤那些依赖不满足的自动装配 Class
+
+		 */
+		// 5. 【根据条件（Condition）】，过滤掉不符合条件的配置类
 		configurations = filter(configurations, autoConfigurationMetadata);
 		// 6. 触发自动配置类引入完成的事件
 		fireAutoConfigurationImportEvents(configurations, exclusions);
+
+		/*
+			返回的就是经过一系列去重、排除、过滤等操作后的自动装配组件
+		 */
 		// 7. 创建 AutoConfigurationEntry 对象
 		return new AutoConfigurationEntry(configurations, exclusions);
+
+		/*
+			至此，流程结束，最后返回的就是自动装配的组件，其中有我们比较熟悉的Redis、JDBC、SpringMVC等，
+			可以看到一个特点，这些自动装配的组件都是以 AutoConfiguration 结尾。
+			但该组件列表只是候选组件，因为后面还有去重、排除、过滤等一系列操作
+		 */
 	}
 
+	// 实现自 DeferredImportSelector 接口
 	@Override
 	public Class<? extends Group> getImportGroup() {
 		return AutoConfigurationGroup.class;
@@ -145,6 +183,11 @@ public class AutoConfigurationImportSelector
 	 * @return annotation attributes
 	 */
 	protected AnnotationAttributes getAttributes(AnnotationMetadata metadata) {
+
+		/*
+			此处 getAnnotationClass().getName() 返回的是 @EnableAutoConfiguration 注解，
+			所以这里返回的注解属性，只能是 exclude 和 excludeName 这两个
+		 */
 		String name = getAnnotationClass().getName();
 		// 获得注解的属性
 		AnnotationAttributes attributes = AnnotationAttributes.fromMap(metadata.getAnnotationAttributes(name, true));
@@ -175,10 +218,24 @@ public class AutoConfigurationImportSelector
 	 * 获得符合条件的配置类的数组
 	 */
 	protected List<String> getCandidateConfigurations(AnnotationMetadata metadata, AnnotationAttributes attributes) {
+
+		/*
+			调用 #getSpringFactoriesLoaderFactoryClass() 方法，获得要从 META-INF/spring.factories 加载的指定类型为 EnableAutoConfiguration 类。
+			protected Class<?> getSpringFactoriesLoaderFactoryClass() {
+				return EnableAutoConfiguration.class;
+			}
+		 */
+		/*
+			】】】】】】搜索classpath路径下以及所有外部jar包下的META-INF文件夹中的spring.factories文件。
+			】】】】】】主要是spring-boot-autoconfigur包下的
+		 */
 	    // 加载指定类型 EnableAutoConfiguration 对应的，在 `META-INF/spring.factories` 里的类名的数组
 		List<String> configurations = SpringFactoriesLoader.loadFactoryNames(getSpringFactoriesLoaderFactoryClass(), getBeanClassLoader());
 		// 断言，非空
 		Assert.notEmpty(configurations, "No auto configuration classes found in META-INF/spring.factories. If you " + "are using a custom packaging, make sure that file is correct.");
+		/*
+			拿到 Configuration 配置类后，后面的就是 Spring Java Config 的事情了
+		 */
 		return configurations;
 	}
 
@@ -310,16 +367,17 @@ public class AutoConfigurationImportSelector
 	}
 
 	private void fireAutoConfigurationImportEvents(List<String> configurations, Set<String> exclusions) {
-	    // 加载指定类型 AutoConfigurationImportListener 对应的，在 `META-INF/spring.factories` 里的类名的数组。
+	    // <1> 加载指定类型 AutoConfigurationImportListener 对应的，在 `META-INF/spring.factories` 里的类名的数组。
 		List<AutoConfigurationImportListener> listeners = getAutoConfigurationImportListeners();
 		if (!listeners.isEmpty()) {
-		    // 创建 AutoConfigurationImportEvent 事件
+		    // <2> 创建 AutoConfigurationImportEvent 事件
 			AutoConfigurationImportEvent event = new AutoConfigurationImportEvent(this, configurations, exclusions);
-			// 遍历 AutoConfigurationImportListener 监听器们，逐个通知
+			// 3> 遍历 AutoConfigurationImportListener 监听器们，逐个通知
 			for (AutoConfigurationImportListener listener : listeners) {
-			    // 设置 AutoConfigurationImportListener 的属性
+			    // <3.1>  设置 AutoConfigurationImportListener 的属性
 				invokeAwareMethods(listener);
-				// 通知
+				// <3.2> 通知
+				// 通知监听器。目前只有一个 ConditionEvaluationReportAutoConfigurationImportListener 监听器，
 				listener.onAutoConfigurationImportEvent(event);
 			}
 		}
@@ -389,6 +447,11 @@ public class AutoConfigurationImportSelector
 		return Ordered.LOWEST_PRECEDENCE - 1;
 	}
 
+	/*
+		是 AutoConfigurationImportSelector 的内部类，
+		实现 DeferredImportSelector.Group、BeanClassLoaderAware、BeanFactoryAware、ResourceLoaderAware 接口，
+		自动配置的 Group 实现类
+	 */
 	private static class AutoConfigurationGroup implements DeferredImportSelector.Group,
 			BeanClassLoaderAware, BeanFactoryAware, ResourceLoaderAware {
 
@@ -396,10 +459,12 @@ public class AutoConfigurationImportSelector
          * AnnotationMetadata 的映射
          *
          * KEY：配置类的全类名
+		 * 在后续我们将看到的 AutoConfigurationGroup#process(...) 方法中，被进行赋值。
          */
 		private final Map<String, AnnotationMetadata> entries = new LinkedHashMap<>();
         /**
          * AutoConfigurationEntry 的数组
+		 * 其中，AutoConfigurationEntry 是 AutoConfigurationImportSelector 的内部类，自动配置的条目。
          */
 		private final List<AutoConfigurationEntry> autoConfigurationEntries = new ArrayList<>();
 
@@ -409,6 +474,7 @@ public class AutoConfigurationImportSelector
 
         /**
          * 自动配置的元数据
+		 * 通过 #getAutoConfigurationMetadata() 方法，会初始化该属性
          */
 		private AutoConfigurationMetadata autoConfigurationMetadata;
 
@@ -427,6 +493,12 @@ public class AutoConfigurationImportSelector
 			this.resourceLoader = resourceLoader;
 		}
 
+		/*
+			annotationMetadata 参数，一般来说是被 @SpringBootApplication 注解的元数据。
+			因为，@SpringBootApplication 组合了 @EnableAutoConfiguration 注解。
+
+			deferredImportSelector 参数，@EnableAutoConfiguration 注解的定义的 @Import 的类，即 AutoConfigurationImportSelector 对象。
+		 */
 		@Override
 		public void process(AnnotationMetadata annotationMetadata, DeferredImportSelector deferredImportSelector) {
 			// 断言
@@ -435,39 +507,46 @@ public class AutoConfigurationImportSelector
 					() -> String.format("Only %s implementations are supported, got %s",
 							AutoConfigurationImportSelector.class.getSimpleName(),
 							deferredImportSelector.getClass().getName()));
-		    // 获得 AutoConfigurationEntry 对象
+		    // <1> 获得 AutoConfigurationEntry 对象
 			AutoConfigurationEntry autoConfigurationEntry = ((AutoConfigurationImportSelector) deferredImportSelector)
 					.getAutoConfigurationEntry(getAutoConfigurationMetadata(), annotationMetadata);
-			// 添加到 autoConfigurationEntries 中
+			// <2> 添加到 autoConfigurationEntries 中
 			this.autoConfigurationEntries.add(autoConfigurationEntry);
-			// 添加到 entries 中
+			// <3> 添加到 entries 中
 			for (String importClassName : autoConfigurationEntry.getConfigurations()) {
 				this.entries.putIfAbsent(importClassName, annotationMetadata);
 			}
 		}
 
+		/*
+			获得要引入的配置类。
+		 */
 		@Override
 		public Iterable<Entry> selectImports() {
-		    // 如果为空，则返回空数组
+		    // <1> 如果为空，则返回空数组
 			if (this.autoConfigurationEntries.isEmpty()) {
 				return Collections.emptyList();
 			}
-			// 获得 allExclusions
+
+			/*
+				获得要引入的配置类集合
+			 */
+			// <2.1> 获得 allExclusions
 			Set<String> allExclusions = this.autoConfigurationEntries.stream()
 					.map(AutoConfigurationEntry::getExclusions)
 					.flatMap(Collection::stream).collect(Collectors.toSet());
-			// 获得 processedConfigurations
+			// <2.2> 获得 processedConfigurations
 			Set<String> processedConfigurations = this.autoConfigurationEntries.stream()
 					.map(AutoConfigurationEntry::getConfigurations)
 					.flatMap(Collection::stream)
 					.collect(Collectors.toCollection(LinkedHashSet::new));
-			// 从 processedConfigurations 中，移除排除的
+			// <2.3> 从 processedConfigurations 中，移除排除的
 			processedConfigurations.removeAll(allExclusions);
-			// 处理，返回结果
-			return sortAutoConfigurations(processedConfigurations, getAutoConfigurationMetadata()) // 排序
+			// 3> 处理，返回结果
+			return sortAutoConfigurations(processedConfigurations, getAutoConfigurationMetadata()) // <3.1>排序
                         .stream()
-                        .map((importClassName) -> new Entry(this.entries.get(importClassName), importClassName)) // 创建 Entry 对象
-                        .collect(Collectors.toList()); // 转换成 List
+                        .map((importClassName) -> new Entry(this.entries.get(importClassName), importClassName)) // <3.2>创建 Entry 对象
+                        .collect(Collectors.toList()); // <3.3>转换成 List
 		}
 
         /**

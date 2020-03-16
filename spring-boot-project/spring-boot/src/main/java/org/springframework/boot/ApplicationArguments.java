@@ -24,6 +24,10 @@ import java.util.Set;
  *
  * @author Phillip Webb
  * @since 1.3.0
+ * 该类是用于简化 Spring Boot 应用启动参数的封装接口，
+ * 】】】】我们启动项目时输入的命令参数会封装在该类中。
+ * 一种是通过 IDEA 输入的参数
+ * 另一种是 springboot jar包运行时传递的参数：cmd中运行java -jar xxx.jar name=张三 pwa=123
  */
 public interface ApplicationArguments {
 

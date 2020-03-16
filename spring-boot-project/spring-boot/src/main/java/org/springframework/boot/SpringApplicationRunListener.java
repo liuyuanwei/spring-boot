@@ -38,58 +38,25 @@ import org.springframework.core.io.support.SpringFactoriesLoader;
  */
 public interface SpringApplicationRunListener {
 
-	/**
-	 * Called immediately when the run method has first started. Can be used for very
-	 * early initialization.
-	 */
+	// 在run()方法开始执行时被调用，表示应用刚刚启动，对应的 Spring Boot 事件为 ApplicationStartingEvent
 	void starting();
 
-	/**
-	 * Called once the environment has been prepared, but before the
-	 * {@link ApplicationContext} has been created.
-	 * @param environment the environment
-	 */
+	// ConfigurableEnvironment 构建完成时调用，对应的 Spring Boot 事件为 ApplicationEnvironmentPreparedEvent
 	void environmentPrepared(ConfigurableEnvironment environment);
 
-	/**
-	 * Called once the {@link ApplicationContext} has been created and prepared, but
-	 * before sources have been loaded.
-	 * @param context the application context
-	 */
+	// ApplicationContext 构建完成时调用，对应的 Spring Boot 事件为 ApplicationContextInitializedEvent
 	void contextPrepared(ConfigurableApplicationContext context);
 
-	/**
-	 * Called once the application context has been loaded but before it has been
-	 * refreshed.
-	 * @param context the application context
-	 */
+	// ApplicationContext 完成加载但还未启动时调用，对应的 Spring Boot 事件为 ApplicationPreparedEvent
 	void contextLoaded(ConfigurableApplicationContext context);
 
-	/**
-	 * The context has been refreshed and the application has started but
-	 * {@link CommandLineRunner CommandLineRunners} and {@link ApplicationRunner
-	 * ApplicationRunners} have not been called.
-	 * @param context the application context.
-	 * @since 2.0.0
-	 */
+	// ApplicationContext 已启动，但 callRunners 还未执行时调用，对应的 Spring Boot 事件为 ApplicationStartedEvent
 	void started(ConfigurableApplicationContext context);
 
-	/**
-	 * Called immediately before the run method finishes, when the application context has
-	 * been refreshed and all {@link CommandLineRunner CommandLineRunners} and
-	 * {@link ApplicationRunner ApplicationRunners} have been called.
-	 * @param context the application context.
-	 * @since 2.0.0
-	 */
+	// ApplicationContext 启动完毕被调用，对应的 Spring Boot 事件为 ApplicationReadyEvent
 	void running(ConfigurableApplicationContext context);
 
-	/**
-	 * Called when a failure occurs when running the application.
-	 * @param context the application context or {@code null} if a failure occurred before
-	 * the context was created
-	 * @param exception the failure
-	 * @since 2.0.0
-	 */
+	// 应用出错时被调用，对应的 Spring Boot 事件为 ApplicationFailedEvent
 	void failed(ConfigurableApplicationContext context, Throwable exception);
 
 }

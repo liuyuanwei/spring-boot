@@ -31,6 +31,8 @@ import org.springframework.core.Ordered;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.util.ErrorHandler;
 
+import java.util.List;
+
 /**
  * {@link SpringApplicationRunListener} to publish {@link SpringApplicationEvent}s.
  * <p>
@@ -42,10 +44,11 @@ import org.springframework.util.ErrorHandler;
  * @author Andy Wilkinson
  * @author Artsiom Yudovin
  * 实现 SpringApplicationRunListener、Ordered 接口，
- * 将 SpringApplicationRunListener 监听到的事件，转换成对应的 SpringApplicationEvent 事件，发布到监听器们。
+ * 将 SpringApplicationRunListener 监听到的事件，】】】【转换成对应的 SpringApplicationEvent 事件，发布到监听器们】。
  */
 /*
-	通过这样的方式，可以很方便的将 SpringApplication 启动的各种事件，方便的修改成对应的 SpringApplicationEvent 事件。这样，我们就可以不需要修改 SpringApplication 的代码。或者说，我们认为 EventPublishingRunListener 是一个“转换器”。
+	通过这样的方式，可以很方便的将 SpringApplication 启动的各种事件，方便的修改成对应的 SpringApplicationEvent 事件。
+	这样，我们就可以不需要修改 SpringApplication 的代码。或者说，我们认为 EventPublishingRunListener 是一个“转换器”。
  */
 public class EventPublishingRunListener implements SpringApplicationRunListener, Ordered {
 
@@ -59,9 +62,17 @@ public class EventPublishingRunListener implements SpringApplicationRunListener,
 	private final String[] args;
     /**
      * 事件广播器
+	 * 该类是 Spring 的事件广播器，也就是通过它来广播各种事件。
      */
 	private final SimpleApplicationEventMulticaster initialMulticaster;
 
+
+	/*
+		可以看到，通过构造方法创建 EventPublishingRunListener 实例的过程中，调用了 getListeners 方法
+		将 SpringApplication 中所有 ApplicationListener 监听器关联到了 initialMulticaster 属性中。
+		没错，这里的 ApplicationListener 监听器就是上篇文章中在 SpringApplication 准备阶段从 spring.factories 文件加载的 key 为 ApplicationListener 的实现类集合，
+		该实现类集合全部重写了 onApplicationEvent 方法。
+	 */
 	public EventPublishingRunListener(SpringApplication application, String[] args) {
 		this.application = application;
 		this.args = args;
@@ -71,7 +82,15 @@ public class EventPublishingRunListener implements SpringApplicationRunListener,
 		for (ApplicationListener<?> listener : application.getListeners()) {
 			this.initialMulticaster.addApplicationListener(listener);
 		}
+
+		/**
+		 * application.getListeners()返回的是这个
+		 * ApplicationListener 数组
+		 * private List<ApplicationListener<?>> listeners;
+		 *
+		 */
 	}
+
 
 	@Override
 	public int getOrder() {

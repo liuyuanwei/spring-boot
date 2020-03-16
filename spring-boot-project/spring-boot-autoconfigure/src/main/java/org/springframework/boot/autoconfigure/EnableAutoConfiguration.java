@@ -74,8 +74,16 @@ import java.lang.annotation.*;
 /*
 	主要功能自动配置包，它会获取主程序类所在的包路径，
 	】】】并将包路径（包括子包）下的所有组件注册到 Spring IOC 容器中。
+
+	这是用来将启动类所在包，以及下面所有子包里面的所有组件扫描到Spring容器中，
+	】】】这里的组件是指被 @Component或其派生注解标注的类。【这也就是为什么不用标注@ComponentScan的原因。】
  */
 @AutoConfigurationPackage
+
+/*
+	@Import(AutoConfigurationImportSelector.class)：这里导入的是实现了 ImportSelector 接口的类，
+	】】】【组件自动装配】的逻辑均在重写的 selectImports 方法中实现。
+ */
 /*
 	AutoConfigurationImportSelector ，
 	实现 DeferredImportSelector、BeanClassLoaderAware、ResourceLoaderAware、BeanFactoryAware、EnvironmentAware、Ordered 接口，
