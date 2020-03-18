@@ -357,7 +357,8 @@ public class SpringApplication {
 		stopWatch.start();
 		//
 		ConfigurableApplicationContext context = null;
-		Collection<SpringBootExceptionReporter> exceptionReporters = new ArrayList<>(); // <7> 获得异常报告器 SpringBootExceptionReporter 数组
+		// <7> 获得异常报告器 SpringBootExceptionReporter 数组
+		Collection<SpringBootExceptionReporter> exceptionReporters = new ArrayList<>();
 
 		// <2> 配置 headless 属性
 		// 这个逻辑，可以无视，和 AWT 相关。
@@ -366,6 +367,7 @@ public class SpringApplication {
 		/*
 			该对象属于组合模式的实现，核心是内部关联的 SpringApplicationRunListener 集合
 			【SpringApplicationRunListener 是 Spring Boot 的运行时监听器】
+			目前，SpringApplicationRunListener 的实现类，只有 EventPublishingRunListener 类。
 		 */
 		// <3> 获得 SpringApplicationRunListener 的数组，并启动监听
 		// 从getSpringFactoriesInstances中获取
@@ -409,6 +411,7 @@ public class SpringApplication {
 				SpringBootExceptionReporter ，记录启动过程中的异常信息。
 				在下面异常捕获catch中有用到
 			 */
+			// 】】】创建应用上下文
 			// <7> 获得异常报告器 SpringBootExceptionReporter 数组
 			exceptionReporters = getSpringFactoriesInstances(
 					SpringBootExceptionReporter.class,
@@ -421,15 +424,17 @@ public class SpringApplication {
 				设置 beanFactory 的属性
 				加载 BeanDefinition 们
 			 */
-			// 】】】创建完 Spring 应用上下文之后，执行 prepareContext 方法进入准备上下文阶段
-			// <8> 】】】主要是调用所有初始化类的 initialize 方法
+			// 】】】准备应用上下文
+			// 创建完 Spring 应用上下文之后，执行 prepareContext 方法进入准备上下文阶段
+			// <8> 主要是调用所有初始化类的 initialize 方法
 			// 准备 ApplicationContext 对象，主要是初始化它的一些属性
 			prepareContext(context, environment, listeners, applicationArguments,
 					printedBanner);
 
+			// 】】】初始化应用上下文
 			// 】】】接下来就是真正启动阶段，执行的是 refreshContext 方法：
 			// <9> 初始化 Spring 容器。
-			// 】】】启动（刷新） Spring 容器
+			// 启动（刷新） Spring 容器
 			refreshContext(context);
 
 			// <10> 执行 Spring 容器的初始化的后置逻辑。
@@ -451,7 +456,7 @@ public class SpringApplication {
 				<2> 处，遍历 Runner 数组，执行逻辑。
 			 */
 			// <14> 调用 ApplicationRunner 或者 CommandLineRunner 的运行方法。
-			// 项目启动后，做的一些操作，开发人员可自行扩展
+			// 】】】项目启动后，做的一些操作，开发人员可自行扩展
 			callRunners(context, applicationArguments);
 		} catch (Throwable ex) {
 			/*
@@ -560,11 +565,12 @@ public class SpringApplication {
 			ApplicationArguments applicationArguments, Banner printedBanner) {
 		// <1> 】】】设置 context 的 environment 属性
 	    context.setEnvironment(environment);
-	    // <2> 设置 context 的一些属性
+	    // <2> 设置 context 的一些属性。比如设置ResourceLoader
 		postProcessApplicationContext(context);
 
 		/*
-			遍历 ApplicationContextInitializer 数组，逐个调用 ApplicationContextInitializer#initialize(context) 方法，进行初始化。
+			遍历 ApplicationContextInitializer 数组，逐个调用 ApplicationContextInitializer#initialize(context) 方法，
+			进行初始化。
 		 */
 		// 】】】<3> 初始化 ApplicationContextInitializer
 		applyInitializers(context);
@@ -588,8 +594,7 @@ public class SpringApplication {
 		}
 
         // 】】】<7> 加载 BeanDefinition 们
-		// 比如包括MVCApplication类
-		Set<Object> sources = getAllSources();
+		Set<Object> sources = getAllSources(); // 比如包括MVCApplication类
 		Assert.notEmpty(sources, "Sources must not be empty");
 		load(context, sources.toArray(new Object[0]));
 
@@ -1077,7 +1082,7 @@ public class SpringApplication {
 		/*
 			<1> 处，获得所有 Runner 们，并进行排序。
 		 */
-	    // <1> 获得所有 Runner 们
+	    // <1> 获得所有 Runner 们。从ioc中获取
 		List<Object> runners = new ArrayList<>();
 		// <1.1> 获得所有 ApplicationRunner Bean 们
 		runners.addAll(context.getBeansOfType(ApplicationRunner.class).values());

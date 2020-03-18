@@ -25,6 +25,7 @@ import org.springframework.context.ConfigurableApplicationContext;
  *
  * 可配置的 WebServer ApplicationContext 接口
  *
+ * 实现它后，可以获得管理 WebServer 的能力。
  * @author Phillip Webb
  * @since 2.0.0
  */

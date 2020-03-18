@@ -24,7 +24,7 @@ import org.springframework.context.ApplicationContext;
  * create and manage the lifecycle of an embedded {@link WebServer}.
  *
  * WebServer ApplicationContext 接口
- *
+ * 可以获得 WebServer 的方法。😈 因为获得它，可以做各种 WebServer 的管理。
  * @author Phillip Webb
  * @since 2.0.0
  */

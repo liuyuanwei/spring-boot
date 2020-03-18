@@ -41,6 +41,10 @@ import java.util.*;
  * @author Oliver Gierke
  * 自动配置所在的包名
  */
+/*
+	简单来说，就是将使用 @AutoConfigurationPackage 注解的类所在的包（package），注册成一个 Spring IoC 容器中的 Bean 。
+	酱紫，后续有其它模块需要使用，就可以通过获得该 Bean ，从而获得所在的包。例如说，JPA 模块，需要使用到。
+ */
 public abstract class AutoConfigurationPackages {
 
 	private static final Log logger = LogFactory.getLog(AutoConfigurationPackages.class);
@@ -124,7 +128,11 @@ public abstract class AutoConfigurationPackages {
 		public void registerBeanDefinitions(AnnotationMetadata metadata, BeanDefinitionRegistry registry) {
 
 			/*
-				 new PackageImport(metadata).getPackageName()
+				调用 #register(BeanDefinitionRegistry registry, String... packageNames) 方法，
+				】】】注册一个用于存储报名（package）的 Bean 到 Spring IoC 容器中
+			 */
+			/*
+				 】】】new PackageImport(metadata).getPackageName()	获取启动类所在的包名。
 				 这里主要是通过 metadata 元数据信息构造 PackageImport 类。
 				  先获取启动类的类名，再通过 ClassUtils.getPackageName 获取启动类所在的包名。
 			 */

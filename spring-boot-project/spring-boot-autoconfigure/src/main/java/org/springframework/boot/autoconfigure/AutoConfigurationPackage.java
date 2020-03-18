@@ -42,6 +42,12 @@ import java.lang.annotation.*;
 	这是用来将启动类所在包，以及下面所有子包里面的所有组件扫描到Spring容器中，
 	】】】这里的组件是指被 @Component或其派生注解标注的类。【这也就是为什么不用标注@ComponentScan的原因。】
  */
+/*
+	AutoConfigurationPackages
+
+	简单来说，就是将使用 @AutoConfigurationPackage 注解的类所在的包（package），注册成一个 Spring IoC 容器中的 Bean 。
+	酱紫，后续有其它模块需要使用，就可以通过获得该 Bean ，从而获得所在的包。例如说，JPA 模块，需要使用到。
+ */
 @Import(AutoConfigurationPackages.Registrar.class)
 public @interface AutoConfigurationPackage {
 

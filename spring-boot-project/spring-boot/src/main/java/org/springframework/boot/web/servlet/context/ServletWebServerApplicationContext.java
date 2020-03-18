@@ -72,26 +72,22 @@ import java.util.*;
  * @see AnnotationConfigServletWebServerApplicationContext
  * @see XmlServletWebServerApplicationContext
  * @see ServletWebServerFactory
+ * 实现 ConfigurableWebServerApplicationContext 接口，
+ * 继承 GenericWebApplicationContext 类，
+ * Spring Boot 使用 Servlet Web 服务器的 ApplicationContext 实现类。
  */
 public class ServletWebServerApplicationContext extends GenericWebApplicationContext implements ConfigurableWebServerApplicationContext {
 
 	private static final Log logger = LogFactory.getLog(ServletWebServerApplicationContext.class);
 
 	/**
-	 * Constant value for the DispatcherServlet bean name. A Servlet bean with this name
-	 * is deemed to be the "main" servlet and is automatically given a mapping of "/" by
-	 * default. To change the default behavior you can use a
 	 * {@link ServletRegistrationBean} or a different bean name.
 	 */
 	public static final String DISPATCHER_SERVLET_NAME = "dispatcherServlet";
 
-    /**
-     * Spring  WebServer 对象
-     */
+    // Spring  WebServer 对象
 	private volatile WebServer webServer;
-    /**
-     * Servlet ServletConfig 对象
-     */
+    // Servlet ServletConfig 对象
 	private ServletConfig servletConfig;
     /**
      * 通过 {@link #setServerNamespace(String)} 注入。
@@ -121,12 +117,15 @@ public class ServletWebServerApplicationContext extends GenericWebApplicationCon
 	 */
 	@Override
 	protected void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) {
-	    // 注册 WebApplicationContextServletContextAwareProcessor
+	    //  <1.1> 注册 WebApplicationContextServletContextAwareProcessor
 		beanFactory.addBeanPostProcessor(new WebApplicationContextServletContextAwareProcessor(this));
-		// 忽略 ServletContextAware 接口
+		// <1.2> 忽略 ServletContextAware 接口
+		/*
+			因为实现 ServletContextAware 接口的 Bean 在 <1.1> 中的 WebApplicationContextServletContextAwareProcessor 中已经处理了。
+		 */
 		beanFactory.ignoreDependencyInterface(ServletContextAware.class);
 
-		// 注册 ExistingWebApplicationScopes
+		// <2> 注册 ExistingWebApplicationScopes
 		registerWebApplicationScopes();
 	}
 
@@ -141,6 +140,9 @@ public class ServletWebServerApplicationContext extends GenericWebApplicationCon
 		}
 	}
 
+	/*
+		覆写 #onRefresh() 方法，在容器初始化时，完成 WebServer 的创建（不包括启动）。
+	 */
 	@Override
 	protected void onRefresh() {
 	    // 调用父方法
@@ -176,12 +178,12 @@ public class ServletWebServerApplicationContext extends GenericWebApplicationCon
 	private void createWebServer() {
 		WebServer webServer = this.webServer;
 		ServletContext servletContext = getServletContext();
-		// 如果 webServer 为空，说明未初始化
+		// <1> 如果 webServer 为空，说明未初始化
 		if (webServer == null && servletContext == null) {
-		    // 获得 ServletWebServerFactory 对象
+		    // <1.1> 获得 ServletWebServerFactory 对象
 			ServletWebServerFactory factory = getWebServerFactory();
-			// 获得 ServletContextInitializer 对象
-            // 创建（获得） WebServer 对象
+			// <1.2> 获得 ServletContextInitializer 对象----getSelfInitializer()
+            // <1.3> 创建（获得） WebServer 对象
 			this.webServer = factory.getWebServer(getSelfInitializer());
         // TODO 芋艿这个情况是？
 		} else if (servletContext != null) {
@@ -201,8 +203,13 @@ public class ServletWebServerApplicationContext extends GenericWebApplicationCon
 	 * the context itself.
 	 * @return a {@link ServletWebServerFactory} (never {@code null})
 	 */
+	/*
+		默认情况下，此处返回的会是 org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory 对象。
+		在我们引入 spring-boot-starter-web 依赖时，默认会引入 spring-boot-starter-tomcat 依赖。
+		此时，org.springframework.boot.autoconfigure.web.servlet.ServletWebServerFactoryConfiguration 在自动配置时，
+		会配置出 TomcatServletWebServerFactory Bean 对象。因此，此时会获得 TomcatServletWebServerFactory 对象。
+	 */
 	protected ServletWebServerFactory getWebServerFactory() {
-		// Use bean names so that we don't consider the hierarchy
         // 获得 ServletWebServerFactory 类型对应的 Bean 的名字们
 		String[] beanNames = getBeanFactory().getBeanNamesForType(ServletWebServerFactory.class);
 		// 如果是 0 个，抛出 ApplicationContextException 异常，因为至少要一个

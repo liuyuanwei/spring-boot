@@ -34,6 +34,19 @@ import org.springframework.boot.web.servlet.ServletContextInitializer;
  * @author Phillip Webb
  * @author Andy Wilkinson
  */
+/*
+	当使用内嵌的 Tomcat 时，你会发现 Spring Boot 完全走了另一套初始化流程，
+	完全没有使用前面提到的 SpringServletContainerInitializer ，
+	实际上一开始我在各种 ServletContainerInitializer 的实现类中打了断点，最终定位到，
+	根本没有运行到 SpringServletContainerInitializer 内部，
+	而是进入了 org.springframework.boot.web.embedded.tomcat.TomcatStarter 这个类中。
+ */
+/*
+	并且，仔细扫了一眼源码的包，并没有发现有 SPI 文件对应到 TomcatStarter。
+	于是我猜想，内嵌 Tomcat 的加载可能不依赖于 Servlet3.0 规范和 SPI ！它完全走了一套独立的逻辑。
+
+
+ */
 class TomcatStarter implements ServletContainerInitializer {
 
 	private static final Log logger = LogFactory.getLog(TomcatStarter.class);

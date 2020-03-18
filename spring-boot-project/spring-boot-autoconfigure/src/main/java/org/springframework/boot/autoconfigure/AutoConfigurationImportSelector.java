@@ -217,6 +217,10 @@ public class AutoConfigurationImportSelector
 	 * @return a list of candidate configurations
 	 * 获得符合条件的配置类的数组
 	 */
+	/*
+		这个方法什么时候被调用的呢？
+			refresh 方法的调用，我们在 《精尽 Spring Boot 源码分析 —— SpringApplication》 中，SpringApplication 启动时，会调用到该方法。
+	 */
 	protected List<String> getCandidateConfigurations(AnnotationMetadata metadata, AnnotationAttributes attributes) {
 
 		/*
